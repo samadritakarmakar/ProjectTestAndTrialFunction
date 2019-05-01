@@ -76,11 +76,11 @@ class MeshReader: public ElementData, public NodeData
 {
 public:
 
-/*    ///Need to use setFileName in this case
+   ///Need to use setFileName in this case
     MeshReader()
     {
     }
-    ///Sets only fileName. Need to use setDimension in this case.
+ /*    ///Sets only fileName. Need to use setDimension in this case.
     MeshReader(std::string FileName)
     {
         setFileName(FileName);

@@ -24,6 +24,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/ShapeFunction/")
 add_subdirectory(ShapeFunction/)
 include_directories ("${PROJECT_SOURCE_DIR}/FEMtools/")
 add_subdirectory(FEMtools/)
+include_directories ("${PROJECT_SOURCE_DIR}/ProjectJacobian/")
+add_subdirectory(ProjectJacobian/)
 include_directories ("${PROJECT_SOURCE_DIR}/TestAndTrialFunction/")
 add_subdirectory(TestAndTrialFunction/)
 
@@ -31,7 +33,7 @@ add_subdirectory(TestAndTrialFunction/)
 
 set (InternalDev TestAndTrialFunction)
 
-set (PreDev libGmshReader GmshApi LagrangeShapeFunction ShapeFunction FEMtools)
+set (PreDev libGmshReader GmshApi LagrangeShapeFunction ShapeFunction FEMtools ProjectJacobian)
 
 set (PreInstalled armadillo lapack openblas superlu)
 

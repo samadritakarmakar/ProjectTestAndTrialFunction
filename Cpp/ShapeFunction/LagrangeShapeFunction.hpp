@@ -19,6 +19,8 @@ public:
         //----Do Nothing-----
     }
     /// Constructor. Here type of element is checked and the needed Function pointer is assigned.
+    /// The Shape Functions for each Gauss Point is row wise.
+    /// [N1G1, N1G2, N1G3,...; N2G1, N2G2, N2G3,...; N3G1, N3G2, N3G3,...;...]
     LagrangeShapeFunction(libGmshReader::MeshReader &Mesh, const int& ElementType)
     {
         int i=ElementType;
@@ -55,18 +57,24 @@ public:
         }
     }
     ///For 1D Shape Functions
+    /// The Shape Functions for each Gauss Point is row wise.
+    /// [N1G1, N1G2, N1G3,...; N2G1, N2G2, N2G3,...; N3G1, N3G2, N3G3,...;...]
     inline mat GetShapeFunction( mat &GaussPointx)
     {
         mat GaussPointz={0}; mat GaussPointy={0};
         return (this->*FunctionPtr)( GaussPointx, GaussPointy, GaussPointz);
     }
     ///For 2D Shape Functions
+    /// The Shape Functions for each Gauss Point is row wise.
+    /// [N1G1, N1G2, N1G3,...; N2G1, N2G2, N2G3,...; N3G1, N3G2, N3G3,...;...]
     inline mat GetShapeFunction( mat &GaussPointx, mat &GaussPointy)
     {
         mat GaussPointz={0};
         return (this->*FunctionPtr)( GaussPointx, GaussPointy, GaussPointz);
     }
     ///For 3D Shape Functions
+    /// The Shape Functions for each Gauss Point is row wise.
+    /// [N1G1, N1G2, N1G3,...; N2G1, N2G2, N2G3,...; N3G1, N3G2, N3G3,...;...]
     inline mat GetShapeFunction( mat &GaussPointx, mat &GaussPointy, mat &GaussPointz)
     {
         return (this->*FunctionPtr)( GaussPointx, GaussPointy, GaussPointz);

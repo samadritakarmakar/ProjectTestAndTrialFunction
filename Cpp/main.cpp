@@ -24,6 +24,6 @@ int main(int argc, char *argv[])
     {
         cout<<N[i];
     }*/
-    TrialFunction u(Mesh, 3);
+    TrialFunction u(Mesh, 2);
     return 0;
 }
