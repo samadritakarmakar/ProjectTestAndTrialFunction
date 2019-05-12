@@ -54,6 +54,7 @@ protected:
         delete []ElementTag;
         delete []ContainsNodes;
         delete []GmshNodeTag;
+        //gmsh::finalize();
     }
     /// Extract just the element name and remove the number of nodes from it.
     void GetGmshElementNameOnly();

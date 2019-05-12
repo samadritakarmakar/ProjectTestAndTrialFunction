@@ -1,6 +1,8 @@
 #include <iostream>
 #include "LagrangeShapeFunctionAllElementTypes.hpp"
 #include "TrialFunction.hpp"
+#include "TestFunctionGalerkin.hpp"
+#include "Form.hpp"
 using namespace arma;
 int main(int argc, char *argv[])
 {
@@ -25,5 +27,10 @@ int main(int argc, char *argv[])
         cout<<N[i];
     }*/
     TrialFunction u(Mesh, 2);
+    TestFunctionGalerkin v(u);
+    Form a;
+    cout<<"Grad(u) =\n"<<mat(a.grad(u));
+    cout<<"v:u =\n"<<mat(a.inner(v,u));
+    cout<<"grad(v):grad(u) =\n"<<mat (a.inner(a.grad(u),a.grad(v)));
     return 0;
 }
