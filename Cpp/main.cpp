@@ -26,11 +26,15 @@ int main(int argc, char *argv[])
     {
         cout<<N[i];
     }*/
-    TrialFunction u(Mesh, 2);
+    TrialFunction u(Mesh,2);
     TestFunctionGalerkin v(u);
     Form a;
+
     cout<<"Grad(u) =\n"<<mat(a.grad(u));
     cout<<"v:u =\n"<<mat(a.inner(v,u));
-    cout<<"grad(v):grad(u) =\n"<<mat (a.inner(a.grad(u),a.grad(v)));
+    cout<<"grad(v):grad(u) =\n"<<mat (a.inner(a.grad(v),a.grad(u)));
+    vec vector={1, 2, 3};
+    cout<<"v.Vectr.grad u= \n"<<mat(a.inner(v,a.dot(vector,a.grad(u))));
+    //cout<<"curl_v.curl_u=\n"<<mat(a.inner(a.curl(v), a.curl(u)));
     return 0;
 }

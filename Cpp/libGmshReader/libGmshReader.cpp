@@ -47,7 +47,7 @@ void libGmshReader::ElementData::GetElementData()
         std::vector<std::vector<int> > elementTags, nodeTags;
         const int tag = -1;
         gmsh::model::mesh::getElements(elementTypes, elementTags, nodeTags, dim, tag);
-        int elementType[elementTypes.size()],dim2,TestStatement;
+        int dim2,TestStatement;
         NumOfElementTypes=elementTypes.size();
         AllocateElementData();
         std::vector<double> parametricCoord;
@@ -222,6 +222,30 @@ void libGmshReader::MeshReader::FindMaxNodeNumber()
         }
     }
     std::cout<<"Largest Node Number is = "<<maxNodeNumber<<"\n";
+}
+
+void libGmshReader::MeshReader::GetPhysicalGroupData()
+{
+
+    gmsh::model::getPhysicalGroups(dimTags,ElementData::dim-1);
+    std::vector<int> PhysicalGroupNodeTags;
+    std::vector <double> PhysicalGroupCoords;
+    PhysicalGroupName =std::vector<std::string> (dimTags.size());
+    for (int i=0; i<dimTags.size(); i++)
+    {
+        gmsh::model::getPhysicalName(ElementData::dim-1, dimTags[i].second, PhysicalGroupName[i]);
+        gmsh::model::mesh::getNodesForPhysicalGroup(dimTags[i].first, dimTags[i].second, PhysicalGroupNodeTags, PhysicalGroupCoords);
+        cout<<"NodeTags and Coords for PhysicalGroup= "<<PhysicalGroupName[i];
+        for (int j=0; j<PhysicalGroupNodeTags.size(); j++)
+        {
+            cout<<"Node Tag: "<< PhysicalGroupNodeTags[j];
+            for (int k=0; k<3; k++)
+            {
+                cout<<" Coords= "<<PhysicalGroupCoords[3*j+k]<<"\n";
+            }
+        }
+    }
+
 }
 
 #endif

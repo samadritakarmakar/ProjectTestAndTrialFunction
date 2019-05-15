@@ -15,10 +15,15 @@ public:
     {
         return u.Get_u(ElementType, GaussPntr).t();
     }
-    ///
+    /// Return Shape Function of grad of v in Matrix form
     inline sp_mat Get_grad_v(int ElementType, int ElementNumber, int GaussPntr)
     {
         return u.Get_grad_u(ElementType, ElementNumber, GaussPntr).t();
+    }
+
+    inline sp_mat Get_curl_v(int ElementType, int ElementNumber, int GaussPntr)
+    {
+        return u.Get_curl_u(ElementType, ElementNumber, GaussPntr).t();
     }
 
     void Get_F(int ElementType, int ElementNumber, int GaussPntr, mat& F)

@@ -15,10 +15,11 @@ namespace libGmshReader
 class ElementData
 {
     public:
-    //std::string *Type, *Degree,
-    std::string *GmshElementName, *GmshElementNameOnly;
-    int *NumOfElementNodes, *order, *NumOfDimension, *GmshElementType, NumOfElementTypes, maxNodeNumber;
-    umat *ElementNodes, *ElementTag, *ContainsNodes, *GmshNodeTag;
+    std::vector<std::string> GmshElementName, GmshElementNameOnly;
+    int  NumOfElementTypes, maxNodeNumber;
+    std::vector<int> NumOfElementNodes, order, NumOfDimension, GmshElementType;
+    std::vector <umat> ElementNodes, ElementTag, ContainsNodes, GmshNodeTag;
+    std::vector<std::string> PhysicalGroupName;
     std::string fileName;
     bool fileExist;
     int dim;
@@ -27,33 +28,20 @@ protected:
     /// Allocate the element data as per the number of element types.
     void AllocateElementData()
     {
-        //Type=new std::string [NumOfElementTypes];
-        //Degree=new std::string [NumOfElementTypes];
-        GmshElementName=new std::string [NumOfElementTypes];
-        GmshElementNameOnly =new std::string [NumOfElementTypes];
-        NumOfElementNodes =new int [NumOfElementTypes];
-        order=new int [NumOfElementTypes];
-        NumOfDimension=new int [NumOfElementTypes];
-        GmshElementType=new int [NumOfElementTypes];
-        ElementNodes=new umat [NumOfElementTypes];
-        ElementTag=new umat [NumOfElementTypes];
-        ContainsNodes=new umat [NumOfElementTypes];
-        GmshNodeTag=new umat[NumOfElementTypes];
+        GmshElementName =std::vector <std::string> (NumOfElementTypes);
+        GmshElementNameOnly =std::vector <std::string> (NumOfElementTypes);
+        NumOfElementNodes =std::vector <int> (NumOfElementTypes);
+        order=std::vector <int> (NumOfElementTypes);
+        NumOfDimension=std::vector <int> (NumOfElementTypes);
+        GmshElementType=std::vector <int> (NumOfElementTypes);
+        ElementNodes=std::vector <arma::umat> (NumOfElementTypes);
+        ElementTag=std::vector <arma::umat> (NumOfElementTypes);
+        ContainsNodes=std::vector <arma::umat> (NumOfElementTypes);
+        GmshNodeTag=std::vector <arma::umat> (NumOfElementTypes);
     }
     /// Delete Element data
     void DeleteElementData()
     {
-        //delete []Type;
-        //delete []Degree;
-        delete []GmshElementName;
-        delete []GmshElementNameOnly;
-        delete []NumOfElementNodes;
-        delete []order;
-        delete []NumOfDimension;
-        delete []ElementNodes;
-        delete []ElementTag;
-        delete []ContainsNodes;
-        delete []GmshNodeTag;
         //gmsh::finalize();
     }
     /// Extract just the element name and remove the number of nodes from it.
@@ -114,6 +102,7 @@ public:
         std::cout<<"Done Reading the Mesh!\n";
         std::chrono::duration<double> elapsed_seconds = end-start;
         std::cout<<"Time taken to Read Mesh= "<<elapsed_seconds.count()<<" seconds\n";
+        GetPhysicalGroupData();
     }
     ///Deallocates all allocated Element Data
     ~MeshReader()
@@ -133,10 +122,14 @@ public:
     ///finds max node number
     void FindMaxNodeNumber();
 
+    void GetPhysicalGroupData();
+
     int success;
-//private:
+private:
     ///Fills the variable ElementNode from start to end-1.
     void FillElementNodes(int start, int end, int ElementType, uvec &ContainsNodeTags);
+    gmsh::vectorpair dimTags;
+
 };
 }
 #endif // LIBGMSHREADER_H

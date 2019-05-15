@@ -76,6 +76,29 @@ public:
         //cout<<"\nF=\n"<<F;
     }
 
+    inline sp_mat dot_vectrLvl_grad_u(vec a, sp_mat grad_u)
+    {
+        if (vectorLvl==1)
+        {
+            //mat aMatrx=repmat(a.t(),grad_u.n_rows,1);
+            //return sp_mat(aMatrx%grad_u);
+            mat aMatrx=a.rows(1,Msh->ElementData::dim).t();
+            //cout<<grad_u;
+            return sp_mat(aMatrx*grad_u);
+        }
+        else
+        {
+            mat vctr=a(span(0,vectorLvl-1)).t();
+            sp_mat vecMatrx(vctr.n_cols,vectorLvl*vctr.n_cols);
+            for (int i=0; i<vectorLvl; i++)
+            {
+                //cout<<"col ="<<i*vectorLvl<<":"<<i*vectorLvl+vectorLvl-1;
+                vecMatrx.cols(i*vectorLvl,i*vectorLvl+vectorLvl-1)=sp_mat(diagmat(vctr.t()));
+            }
+            return vecMatrx*grad_u;
+        }
+    }
+
     /// Gives an output for trace of grad u
     inline mat Get_trace_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
@@ -319,6 +342,18 @@ public:
         return u[ElementType][GaussPntr];
     }
 protected:
+    int vectorLvl;
+    std::vector<mat> GaussData;
+    std::vector<mat> Weight;
+    std::vector<mat> GaussPointx;
+    std::vector<mat> GaussPointy;
+    std::vector<mat> GaussPointz;
+    std::vector<std::vector<sp_mat>> u;
+    std::vector<std::vector<mat>> dN_by_dEps;
+    std::vector<LagrangeShapeFunction> Phi;
+    std::vector<mat> N;
+    libGmshReader::MeshReader *Msh;
+
     /// 'Variable' must be in form of a vector
     /// This function builds the representation similar to
     /// how shape functions are represented generally in text books
@@ -337,17 +372,6 @@ protected:
         }
         return Matrx;
     }
-    int vectorLvl;
-    std::vector<mat> GaussData;
-    std::vector<mat> Weight;
-    std::vector<mat> GaussPointx;
-    std::vector<mat> GaussPointy;
-    std::vector<mat> GaussPointz;
-    std::vector<std::vector<sp_mat>> u;
-    std::vector<std::vector<mat>> dN_by_dEps;
-    std::vector<LagrangeShapeFunction> Phi;
-    std::vector<mat> N;
-    libGmshReader::MeshReader *Msh;
 
     void CalculateGaussPointsAndWeights(mat &wt, mat& GaussPntx, mat& GaussPnty, int ElementType)
     {
