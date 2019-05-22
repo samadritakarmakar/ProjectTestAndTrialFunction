@@ -15,7 +15,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #set (PreInstalled armadillo lapack openblas superlu)
 
-add_library(${PROJECT_NAME} GmshNodeListGen.h cof.hpp
+add_library(${PROJECT_NAME} GmshNodeListGen.h
     BuildTriangleMatrix.hpp FindCoeffTriangle.hpp NumOfTriNodes.hpp
     FindCoeffQuad.hpp NumOfQuadNodes.hpp BuildQuadMatrix.hpp
     BuildHexahedralMatrix.hpp FindCoeffHexahedral.hpp NumOfHexaNodes.hpp

@@ -20,15 +20,81 @@ class TrialFunction
 public:
     mat (TrialFunction::*Pntr_Calc_N)(mat , OtherData);
     std::vector<int> NoOfGaussPts;
+
+    libGmshReader::MeshReader *Msh;
+    int MeshDimension;
+    int vectorLvl;
+
     /// To be used only for declaring, must not forget to Initialize.
     TrialFunction()
     {
         //---Do--Nothing
     }
+    TrialFunction(std::string& fileName, int MeshDimension, int vectorLevel)
+    {
+        Msh =new libGmshReader::MeshReader(fileName, MeshDimension);
+        NewMeshInstanceCreated=true;
+        std::cout<<"Constructor runs file name type !!\n";
+        SetDimension();
+        SetCommonVariables(vectorLevel);
+        if(vectorLevel<MeshDimension && vectorLevel!=1)
+        {
+            vectorLvl=1;
+        }
+        SetDimension();
+        SetGaussPtBasedVariables();
+        // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
+        Generate_dN_by_dEps ();
+    }
+
     /// Must use this to initialize the Trial Function
-    TrialFunction(libGmshReader::MeshReader& Mesh, int vectorLevel)
+    TrialFunction(libGmshReader::MeshReader& Mesh, int& vectorLevel)
+    {
+        NewMeshInstanceCreated=false;
+        std::cout<<"Constructor runs Mesh type !!\n";
+        SetMesh(Mesh);
+        SetCommonVariables(vectorLevel);
+        SetDimension();
+        CheckVectorLevel();
+        SetGaussPtBasedVariables();
+        // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
+        Generate_dN_by_dEps ();
+        /*std::vector<libGmshReader::MeshReader> MeshLowerDim (MeshDimension-1);
+
+        int dim;
+        int vectorLvlNew=vectorLvl;
+        for (dim=MeshDimension-1; dim>=2; dim--)
+        {
+            if(vectorLvlNew!=1)
+            {
+                vectorLvlNew--;
+            }
+            cout<<"vectorLvlNew = "<<vectorLvlNew<<" dim= "<<dim<<"\n";
+            MeshLowerDim[dim-1]=libGmshReader::MeshReader(Msh->ElementData::fileName, dim);
+            //static TrialFunction u_down(MeshLowerDim[dim],vectorLvlNew, dim);
+        }*/
+    }
+
+    TrialFunction(libGmshReader::MeshReader& Mesh, int& vectorLevel, int& Dimension)
+    {
+        NewMeshInstanceCreated=false;
+        SetMesh(Mesh);
+        SetCommonVariables(vectorLevel);
+        SetDimension(Dimension);
+        CheckVectorLevel();
+        SetGaussPtBasedVariables();
+        // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
+        Generate_dN_by_dEps ();
+    }
+
+    void SetMesh(libGmshReader::MeshReader& Mesh)
     {
         Msh=&Mesh;
+    }
+
+
+    void SetCommonVariables(int& vectorLevel)
+    {
         vectorLvl=vectorLevel;
         N=std::vector<mat> (Msh->NumOfElementTypes);
         Phi=std::vector<LagrangeShapeFunction> (Msh->NumOfElementTypes);
@@ -40,12 +106,30 @@ public:
         NoOfGaussPts=std::vector<int> (Msh->NumOfElementTypes);
         u=std::vector<std::vector<sp_mat>>(Msh->NumOfElementTypes);
         dN_by_dEps=std::vector<std::vector<mat>>(Msh->NumOfElementTypes);
-        if (vectorLvl!=1 && vectorLvl!=Msh->ElementData::dim)
+    }
+
+    void SetDimension()
+    {
+        MeshDimension=Msh->ElementData::dim;
+    }
+
+    void SetDimension(int& Dimension)
+    {
+        MeshDimension=Dimension;
+    }
+
+    void CheckVectorLevel()
+    {
+        if (vectorLvl!=1 && vectorLvl!=MeshDimension)
         {
-            std::cout<<"Dimension ("<<Msh->ElementData::dim<<") must match the Vector Level "<<vectorLvl<<"\n";
+            std::cout<<"Dimension ("<<MeshDimension<<") must match the Vector Level "<<vectorLvl<<"\n";
             std::cout<<"or Vector Level should be equal to 1!!!\n";
             throw;
         }
+    }
+
+    void SetGaussPtBasedVariables()
+    {
         for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
         {
             Generate_GaussPoints_Weights_ShapeFunctions(ElementType);
@@ -61,28 +145,28 @@ public:
                 //cout<<mat(u[ElementType][GaussPt])<<"\n";
             }
         }
-        // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
-        Generate_dN_by_dEps ();
-
-        //cout<<Get_dN_by_dx(0,0,0)<<"\n";
-        //cout<<mat(Get_grad_u(0,0,0))<<"\n";
-        //cout<<mat(GetTranspose_grad_u(0,0,0))<<"\n";
-        //PrintAll_dN_by_dEps();
-        //cout<<mat(Get_curl_u(0,0,0))<<"\n";
-        //cout<<mat(Get_KroneckerDelta(0));
-        //cout<<Get_trace_grad_u(0,0,0);
-        //mat F;
-        //Get_F(0,0,0,F);
-        //cout<<"\nF=\n"<<F;
     }
 
-    inline sp_mat dot_vectrLvl_grad_u(vec a, sp_mat grad_u)
+
+    /// Destructor
+    ~TrialFunction()
+    {
+        std::cout<<"Destructor runs!!\n";
+        //delete [] u_down;
+        if (NewMeshInstanceCreated)
+        {
+            std::cout<<"Mesh Destroyed of dim"<<Msh->ElementData::dim <<"!\n";
+            //delete []Msh;
+        }
+    }
+
+    /*inline sp_mat dot_vectrLvl_grad_u(vec a, sp_mat grad_u)
     {
         if (vectorLvl==1)
         {
             //mat aMatrx=repmat(a.t(),grad_u.n_rows,1);
             //return sp_mat(aMatrx%grad_u);
-            mat aMatrx=a.rows(1,Msh->ElementData::dim).t();
+            mat aMatrx=a.rows(1,MeshDimension).t();
             //cout<<grad_u;
             return sp_mat(aMatrx*grad_u);
         }
@@ -98,7 +182,7 @@ public:
             return vecMatrx*grad_u;
         }
     }
-
+    */
     /// Gives an output for trace of grad u
     inline mat Get_trace_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
@@ -215,10 +299,10 @@ public:
         //cout<<"ElementNodes =\n"<<NodesAtElmntNmbr;
         //cout<<"Coodinates of "<<ElementNumber<<" are \n"<<Msh->NodalCoordinates.rows(NodesAtElmntNmbr);
         mat Coordinates=Msh->NodalCoordinates.rows(NodesAtElmntNmbr);
-        //cout<<"Coodinates of "<<ElementNumber<<" are \n"<<Coordinates.cols(0,Msh->ElementData::dim-1)<<"\n";
+        //cout<<"Coodinates of "<<ElementNumber<<" are \n"<<Coordinates.cols(0,MeshDimension-1)<<"\n";
         //coords of x for dim 1; x & y for dim 2; x, y & z for dim 3;
-        F=Coordinates.cols(0,Msh->ElementData::dim-1).t()*dN_by_dEps[ElementType][GaussPntr];
-        //cout<<"Coordinates.cols(0,Msh->ElementData::dim-1).t()=\n"<<Coordinates.cols(0,Msh->ElementData::dim-1).t();
+        F=Coordinates.cols(0,MeshDimension-1).t()*dN_by_dEps[ElementType][GaussPntr];
+        //cout<<"Coordinates.cols(0,MeshDimension-1).t()=\n"<<Coordinates.cols(0,MeshDimension-1).t();
         //cout<<"\ndN_by_dEps[ElementType][GaussPntr];\n"<<dN_by_dEps[ElementType][GaussPntr];
     }
 
@@ -226,7 +310,7 @@ public:
     void Generate_dN_by_dEps ()
     {
         OtherData Data;
-        int dim=Msh->ElementData::dim;
+        int dim=MeshDimension;
         mat x;
         x.set_size(1,dim);
         for (int ElmntTypCountr=0; ElmntTypCountr<Msh->NumOfElementTypes; ElmntTypCountr++)
@@ -235,15 +319,15 @@ public:
             Data.ElementType=ElmntTypCountr;
             for (int GaussPntr=0; GaussPntr<GaussPointx[i].n_rows; GaussPntr++)
             {
-                if(Msh->ElementData::dim==1)
+                if(MeshDimension==1)
                 {
                     x=GaussPointx[i].row(GaussPntr);
                 }
-                else if (Msh->ElementData::dim==2)
+                else if (MeshDimension==2)
                 {
                     x=join_vert(GaussPointx[i].row(GaussPntr), GaussPointy[i].row(GaussPntr));
                 }
-                else if (Msh->ElementData::dim==3)
+                else if (MeshDimension==3)
                 {
                     mat x1=join_vert(GaussPointx[i].row(GaussPntr), GaussPointy[i].row(GaussPntr));
                     x=join_vert(x1,GaussPointz[i].row(GaussPntr));
@@ -263,20 +347,20 @@ public:
         //int &ElemntTyp=Data.ElementType;
         //int &GaussPt=Data.GuassPntCounter;
         mat GaussPtx,GaussPty,GaussPtz, N_AtGaussPt;
-        if (Msh->ElementData::dim==1)
+        if (MeshDimension==1)
         {
             //cout<<"x= "<<x<<"\n";
             GaussPtx=x.row(0);
             N_AtGaussPt=Phi[Data.ElementType].GetShapeFunction(GaussPtx);
         }
-        else if (Msh->ElementData::dim==2)
+        else if (MeshDimension==2)
         {
             //cout<<"x= "<<x<<"\n";
             GaussPtx=x.row(0);
             GaussPty=x.row(1);
             N_AtGaussPt=Phi[Data.ElementType].GetShapeFunction(GaussPtx,GaussPty);
         }
-        else if(Msh->ElementData::dim=3)
+        else if(MeshDimension==3)
         {
             //cout<<"x= "<<x<<"\n";
             GaussPtx=x.row(0);
@@ -296,7 +380,7 @@ public:
     /// Returns the Gauss Points of x-coordinates for a particular ElementType
     inline mat GetGaussPoints_x(int ElementType)
     {
-        if (Msh->ElementData::dim>=1)
+        if (MeshDimension>=1)
             return GaussPointx[ElementType];
         else
         {
@@ -309,7 +393,7 @@ public:
     /// Returns the Gauss Points of y-coordinates for a particular ElementType
     inline mat GetGaussPoints_y(int ElementType)
     {
-        if (Msh->ElementData::dim>=2)
+        if (MeshDimension>=2)
             return GaussPointy[ElementType];
         else
         {
@@ -321,7 +405,7 @@ public:
     /// Returns the Gauss Points of z-coordinates for a particular ElementType
     inline mat GetGaussPoints_z(int ElementType)
     {
-        if (Msh->ElementData::dim>=3)
+        if (MeshDimension>=3)
             return GaussPointy[ElementType];
         else
         {
@@ -342,7 +426,6 @@ public:
         return u[ElementType][GaussPntr];
     }
 protected:
-    int vectorLvl;
     std::vector<mat> GaussData;
     std::vector<mat> Weight;
     std::vector<mat> GaussPointx;
@@ -352,7 +435,10 @@ protected:
     std::vector<std::vector<mat>> dN_by_dEps;
     std::vector<LagrangeShapeFunction> Phi;
     std::vector<mat> N;
-    libGmshReader::MeshReader *Msh;
+    bool NewMeshInstanceCreated=false;
+    //std::string MshFileName;
+
+    //TrialFunction *u_down;
 
     /// 'Variable' must be in form of a vector
     /// This function builds the representation similar to

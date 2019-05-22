@@ -224,28 +224,67 @@ void libGmshReader::MeshReader::FindMaxNodeNumber()
     std::cout<<"Largest Node Number is = "<<maxNodeNumber<<"\n";
 }
 
+/// Retrieves Physical Group Data
 void libGmshReader::MeshReader::GetPhysicalGroupData()
 {
 
-    gmsh::model::getPhysicalGroups(dimTags,ElementData::dim-1);
-    std::vector<int> PhysicalGroupNodeTags;
+    gmsh::model::getPhysicalGroups(dimTags,ElementData::dim);
     std::vector <double> PhysicalGroupCoords;
     PhysicalGroupName =std::vector<std::string> (dimTags.size());
-    for (int i=0; i<dimTags.size(); i++)
+    for (int ElmntTyp=0; ElmntTyp<NumOfElementTypes; ElmntTyp++)
+        ElmntPhysclGrpNodes[ElmntTyp]=std::vector <umat> (dimTags.size());
+    NumOfPhysclGrps=dimTags.size();
+    for (int PhysclGrpNum=0; PhysclGrpNum<dimTags.size(); PhysclGrpNum++)
     {
-        gmsh::model::getPhysicalName(ElementData::dim-1, dimTags[i].second, PhysicalGroupName[i]);
-        gmsh::model::mesh::getNodesForPhysicalGroup(dimTags[i].first, dimTags[i].second, PhysicalGroupNodeTags, PhysicalGroupCoords);
-        cout<<"NodeTags and Coords for PhysicalGroup= "<<PhysicalGroupName[i];
+        gmsh::model::getPhysicalName(ElementData::dim, dimTags[PhysclGrpNum].second, PhysicalGroupName[PhysclGrpNum]);
+        gmsh::model::mesh::getNodesForPhysicalGroup(dimTags[PhysclGrpNum].first, dimTags[PhysclGrpNum].second, PhysicalGroupNodeTags, PhysicalGroupCoords);
+        /*cout<<"NodeTags and Coords for PhysicalGroup= "<<PhysicalGroupName[i];
         for (int j=0; j<PhysicalGroupNodeTags.size(); j++)
         {
-            cout<<"Node Tag: "<< PhysicalGroupNodeTags[j];
+            cout<<"Node Tag: "<< PhysicalGroupNodeTags[j]<<"\n";
             for (int k=0; k<3; k++)
             {
                 cout<<" Coords= "<<PhysicalGroupCoords[3*j+k]<<"\n";
             }
+        }*/
+        for (int ElmntTyp=0; ElmntTyp<NumOfElementTypes; ElmntTyp++)
+        {
+            int NumOfElmntPhyGrpRows=0, NumOfElmntPhyGrpCols=NumOfElementNodes[ElmntTyp];
+            mat MatchedNodes=zeros(GmshNodeTag[ElmntTyp].n_rows,1);
+            for (int row=0; row<GmshNodeTag[ElmntTyp].n_rows; row++)
+            {
+                for (int col=0; col<GmshNodeTag[ElmntTyp].n_cols; col++)
+                {
+                    for(int PhysNdTgNmbr=0; PhysNdTgNmbr<PhysicalGroupNodeTags.size(); PhysNdTgNmbr++)
+                    {
+                        if(GmshNodeTag[ElmntTyp](row,col)==PhysicalGroupNodeTags[PhysNdTgNmbr])
+                        {
+                            //cout<<"MatchedNodes rows= "<<MatchedNodes.n_rows<<"; Current row = "<<row<<"\n";
+                            MatchedNodes(row,0)++;
+                            if(MatchedNodes(row,0)==NumOfElementNodes[ElmntTyp])
+                            {
+                                NumOfElmntPhyGrpRows++;
+                                ElmntPhysclGrpNodes[ElmntTyp][PhysclGrpNum].resize(NumOfElmntPhyGrpRows, NumOfElmntPhyGrpCols);
+                                ElmntPhysclGrpNodes[ElmntTyp][PhysclGrpNum].row(NumOfElmntPhyGrpRows-1)=ElementNodes[ElmntTyp].row(row);
+                               // cout<<"At ElmntType "<<ElmntTyp<<" PhysclGrpNum "<<PhysclGrpNum <<" n_rows = "<<ElmntPhysclGrpNodes[ElmntTyp][PhysclGrpNum].n_rows
+                               //    <<" n_cols = "<<ElmntPhysclGrpNodes[ElmntTyp][PhysclGrpNum].n_cols<<"!!\n";
+                               // cout<<ElmntPhysclGrpNodes[ElmntTyp][PhysclGrpNum];
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-
+    /*for (int i=0; i<NumOfElementTypes; i++)
+    {
+        for (int j=0; j<dimTags.size(); j++)
+        {
+            cout<<"Tags for ElmntPhysclGrpNode "<<j<<" =\n"<<ElmntPhysclGrpNodes[i][j];
+            cout<<"Coords for ElmntPhysclGrpNode "<<j<<" =\n";
+            for(int k=0; k<ElmntPhysclGrpNodes[i][j].n_rows; k++)
+                cout<<NodalCoordinates.rows(ElmntPhysclGrpNodes[i][j].row(k));
+        }
+    }*/
 }
-
 #endif

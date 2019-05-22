@@ -16,10 +16,12 @@ class ElementData
 {
     public:
     std::vector<std::string> GmshElementName, GmshElementNameOnly;
-    int  NumOfElementTypes, maxNodeNumber;
+    int  NumOfElementTypes, maxNodeNumber, NumOfPhysclGrps;
     std::vector<int> NumOfElementNodes, order, NumOfDimension, GmshElementType;
     std::vector <umat> ElementNodes, ElementTag, ContainsNodes, GmshNodeTag;
+    std::vector <std::vector <umat>> ElmntPhysclGrpNodes;
     std::vector<std::string> PhysicalGroupName;
+    std::vector<int> PhysicalGroupNodeTags;
     std::string fileName;
     bool fileExist;
     int dim;
@@ -38,6 +40,7 @@ protected:
         ElementTag=std::vector <arma::umat> (NumOfElementTypes);
         ContainsNodes=std::vector <arma::umat> (NumOfElementTypes);
         GmshNodeTag=std::vector <arma::umat> (NumOfElementTypes);
+        ElmntPhysclGrpNodes =std::vector <std::vector <umat>> (NumOfElementTypes);
     }
     /// Delete Element data
     void DeleteElementData()
@@ -125,6 +128,8 @@ public:
     void GetPhysicalGroupData();
 
     int success;
+
+
 private:
     ///Fills the variable ElementNode from start to end-1.
     void FillElementNodes(int start, int end, int ElementType, uvec &ContainsNodeTags);

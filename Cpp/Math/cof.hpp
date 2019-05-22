@@ -66,4 +66,32 @@ inline mat cof(mat matrix)
   }
   return cofactors ;
 }
+
+inline mat cofTopRow(mat matrix)
+{
+
+  int r = matrix.n_rows;
+  int c = matrix.n_cols;
+  int i,j;
+  mat matrx  = arma::zeros<mat>(r-1, c-1) ;
+  mat cofactors = arma::zeros<mat>(1, c) ;
+  // Left topmost Corner of matrix
+  i=0; j=0;
+  matrx =matrix(span(i+1,r-1),span(j+1,c-1));
+  cofactors(i, j) = det(matrx)*pow((-1), (i+j));
+
+  // Right topmost Corner of matrix
+  i=0; j=c-1;
+  matrx=matrix(span(i+1,r-1),span(0,j-1));
+  cofactors(i, j) = det(matrx)*pow((-1), (i+j));
+
+  // Topmost and bottom most row of other than  the corners
+  for (j=1; j<c-1; j++)
+  {
+      i=0;
+      matrx=join_horiz(matrix(span(i+1,r-1),span(0,j-1)), matrix(span(i+1,r-1),span(j+1,c-1)));
+      cofactors(i, j) = det(matrx)*pow((-1), (i+j));
+  }
+  return cofactors;
+}
 #endif
