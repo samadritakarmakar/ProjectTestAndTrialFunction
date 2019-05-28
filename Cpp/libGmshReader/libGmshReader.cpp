@@ -13,7 +13,9 @@ void libGmshReader::NodeData::GetNodeData()
         gmsh::open(fileName);
         std::vector<int> nodeTags;
         std::vector<double> coord, parametricCoord;
-        const int tag=-1, dim2=-1;//Retrieves all tags and dimensions
+        const int tag=-1;
+        //const int dim2=-1;//Retrieves all tags and dimensions
+        const int dim2=NodeData::dim;
         const bool includeBoundary = true;
         gmsh::model::mesh::getNodes(nodeTags, coord, parametricCoord, dim2, tag, includeBoundary);
         std::vector<int>::const_iterator j=nodeTags.begin();

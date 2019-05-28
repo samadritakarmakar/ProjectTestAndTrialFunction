@@ -6,7 +6,7 @@
 #include <armadillo>
 using namespace arma ;
 /// Returns the cofator of a matrix. Accepts the reqd. matrix as input.
-inline mat cof(mat matrix)
+ mat cof(mat matrix)
 {
 
   int r = matrix.n_rows;
@@ -67,7 +67,7 @@ inline mat cof(mat matrix)
   return cofactors ;
 }
 
-inline mat cofTopRow(mat matrix)
+ mat cofTopRow(mat matrix)
 {
 
   int r = matrix.n_rows;

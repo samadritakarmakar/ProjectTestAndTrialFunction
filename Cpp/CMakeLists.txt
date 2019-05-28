@@ -30,6 +30,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/ProjectJacobian/")
 add_subdirectory(ProjectJacobian/)
 include_directories ("${PROJECT_SOURCE_DIR}/TestAndTrialFunction/")
 add_subdirectory(TestAndTrialFunction/)
+include_directories ("${PROJECT_SOURCE_DIR}/Integrator/")
+add_subdirectory(Integrator/)
 
 #set (PreInstalled armadillo blas lapack)
 

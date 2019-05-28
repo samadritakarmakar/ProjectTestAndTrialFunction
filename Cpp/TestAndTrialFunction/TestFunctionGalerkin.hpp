@@ -1,32 +1,35 @@
 #ifndef TESTFUNCTIONGALERKIN_HPP
 #define TESTFUNCTIONGALERKIN_HPP
 #include "TrialFunction.hpp"
+template<class GenericTrialFunction>
 class TestFunctionGalerkin
 {
 public:
+    int vectorLvl;
     TestFunctionGalerkin()
     {
         //---Do-Nothing
     }
     /// Must Initialize using this.
-    TestFunctionGalerkin( TrialFunction& u1)
+    TestFunctionGalerkin(GenericTrialFunction& u1)
     {
         u=&u1;
+        vectorLvl=u1.vectorLvl;
         //cout<<"v =\n"<<mat(Get_v(0,0))<<"\n";
         //cout<<"Grad_v\n"<<mat(Get_grad_v(0,0,0))<<"\n";
     }
     /// Return Shape Function of v in Matrix form
-    inline sp_mat Get_v(int ElementType, int GaussPntr)
+     sp_mat Get_v(int ElementType, int GaussPntr)
     {
         return u->Get_u(ElementType, GaussPntr).t();
     }
     /// Return Shape Function of grad of v in Matrix form
-    inline sp_mat Get_grad_v(int ElementType, int ElementNumber, int GaussPntr)
+     sp_mat Get_grad_v(int ElementType, int ElementNumber, int GaussPntr)
     {
         return u->Get_grad_u(ElementType, ElementNumber, GaussPntr).t();
     }
 
-    inline sp_mat Get_curl_v(int ElementType, int ElementNumber, int GaussPntr)
+     sp_mat Get_curl_v(int ElementType, int ElementNumber, int GaussPntr)
     {
         return u->Get_curl_u(ElementType, ElementNumber, GaussPntr).t();
     }
@@ -37,7 +40,7 @@ public:
     }
 
 private:
-    TrialFunction *u;
+    GenericTrialFunction *u;
 };
 
 #endif // TESTFUNCTION_HPP

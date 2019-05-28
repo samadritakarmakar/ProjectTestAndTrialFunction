@@ -24,6 +24,7 @@ public:
     libGmshReader::MeshReader *Msh;
     int MeshDimension;
     int vectorLvl;
+    int NoOfElementTypes;
 
     /// To be used only for declaring, must not forget to Initialize.
     TrialFunction()
@@ -34,7 +35,7 @@ public:
     {
         Msh =new libGmshReader::MeshReader(fileName, MeshDimension);
         NewMeshInstanceCreated=true;
-        std::cout<<"Constructor runs file name type !!\n";
+        //std::cout<<"Constructor runs file name type !!\n";
         SetDimension();
         SetCommonVariables(vectorLevel);
         if(vectorLevel<MeshDimension && vectorLevel!=1)
@@ -51,7 +52,7 @@ public:
     TrialFunction(libGmshReader::MeshReader& Mesh, int& vectorLevel)
     {
         NewMeshInstanceCreated=false;
-        std::cout<<"Constructor runs Mesh type !!\n";
+        //std::cout<<"Constructor runs Mesh type !!\n";
         SetMesh(Mesh);
         SetCommonVariables(vectorLevel);
         SetDimension();
@@ -106,6 +107,7 @@ public:
         NoOfGaussPts=std::vector<int> (Msh->NumOfElementTypes);
         u=std::vector<std::vector<sp_mat>>(Msh->NumOfElementTypes);
         dN_by_dEps=std::vector<std::vector<mat>>(Msh->NumOfElementTypes);
+        NoOfElementTypes=Msh->NumOfElementTypes;
     }
 
     void SetDimension()
@@ -151,16 +153,16 @@ public:
     /// Destructor
     ~TrialFunction()
     {
-        std::cout<<"Destructor runs!!\n";
+        //std::cout<<"Destructor runs!!\n";
         //delete [] u_down;
         if (NewMeshInstanceCreated)
         {
-            std::cout<<"Mesh Destroyed of dim"<<Msh->ElementData::dim <<"!\n";
+            //std::cout<<"Mesh Destroyed of dim"<<Msh->ElementData::dim <<"!\n";
             //delete []Msh;
         }
     }
 
-    /*inline sp_mat dot_vectrLvl_grad_u(vec a, sp_mat grad_u)
+    /* sp_mat dot_vectrLvl_grad_u(vec a, sp_mat grad_u)
     {
         if (vectorLvl==1)
         {
@@ -184,7 +186,7 @@ public:
     }
     */
     /// Gives an output for trace of grad u
-    inline mat Get_trace_grad_u(int ElementType, int ElementNumber, int GaussPntr)
+     mat Get_trace_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
         mat dN_by_dx_atGaussPt=Get_dN_by_dx(ElementType, ElementNumber, GaussPntr);
         int cols_dN_dx=Get_dN_by_dx(ElementType,0,0).n_cols;
@@ -193,7 +195,7 @@ public:
     }
 
     /// Returns Kronecker Delta that can be used with gradients on u.
-    inline sp_mat Get_KroneckerDelta(int ElementType)
+     sp_mat Get_KroneckerDelta(int ElementType)
     {
         int GaussPntr=0;
         int rows_dN_dx=Get_dN_by_dx(ElementType,0,0).n_rows;
@@ -210,7 +212,7 @@ public:
     }
 
     /// Returns curl of u.
-    inline sp_mat Get_curl_u(int ElementType, int ElementNumber, int GaussPntr)
+     sp_mat Get_curl_u(int ElementType, int ElementNumber, int GaussPntr)
     {
         mat dN_by_dx_atGaussPt=Get_dN_by_dx(ElementType, ElementNumber, GaussPntr);
         int rows_dN_dx=dN_by_dx_atGaussPt.n_rows;
@@ -240,7 +242,7 @@ public:
 
     /// Returns the Gradient of u for a particular gauss point of a particular
     /// element which is a particular ElementType
-    inline sp_mat Get_grad_u(int ElementType, int ElementNumber, int GaussPntr)
+     sp_mat Get_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
         mat dN_by_dx_atGaussPt=Get_dN_by_dx(ElementType, ElementNumber, GaussPntr);
         int rows_dN_dx=dN_by_dx_atGaussPt.n_rows;
@@ -261,7 +263,7 @@ public:
     }
     /// Returns the Transpose of Gradient of u for a particular gauss point of a particular
     /// element which is a particular ElementType
-    inline sp_mat GetTranspose_grad_u(int ElementType, int ElementNumber, int GaussPntr)
+     sp_mat GetTranspose_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
         mat dN_by_dx_atGaussPt=Get_dN_by_dx(ElementType, ElementNumber, GaussPntr);
         //cout<<"dN_by_dx_atGaussPt=\n"<<dN_by_dx_atGaussPt<<"\n";
@@ -283,7 +285,7 @@ public:
 
     /// Returns the Gradient of N (dN_by_dx) for a particular gauss point of a particular
     /// element which is a particular ElementType
-    inline mat Get_dN_by_dx(int ElementType, int ElementNumber, int GaussPntr)
+     mat Get_dN_by_dx(int ElementType, int ElementNumber, int GaussPntr)
     {
         mat F;
         Get_F(ElementType, ElementNumber, GaussPntr, F);
@@ -341,7 +343,7 @@ public:
     }
     /// This function calculates the shape function for a gauss point of an element,
     /// belonging to a particular element type.
-    inline mat Calculate_N_GaussPointWise(mat x1, OtherData Data)
+     mat Calculate_N_GaussPointWise(mat x1, OtherData Data)
     {
         vec x=vectorise(x1);
         //int &ElemntTyp=Data.ElementType;
@@ -372,13 +374,18 @@ public:
         return N_AtGaussPt;
     }
 
+     double WeightAt(int ElementType, int GaussPntr)
+    {
+        return Weight[ElementType](GaussPntr);
+    }
+
     /// Returns the Gauss Weights for a particular ElementType
-    inline mat GetWeights(int ElementType)
+     mat GetWeights(int ElementType)
     {
         return Weight[ElementType];
     }
     /// Returns the Gauss Points of x-coordinates for a particular ElementType
-    inline mat GetGaussPoints_x(int ElementType)
+     mat GetGaussPoints_x(int ElementType)
     {
         if (MeshDimension>=1)
             return GaussPointx[ElementType];
@@ -391,7 +398,7 @@ public:
     }
 
     /// Returns the Gauss Points of y-coordinates for a particular ElementType
-    inline mat GetGaussPoints_y(int ElementType)
+     mat GetGaussPoints_y(int ElementType)
     {
         if (MeshDimension>=2)
             return GaussPointy[ElementType];
@@ -403,7 +410,7 @@ public:
         }
     }
     /// Returns the Gauss Points of z-coordinates for a particular ElementType
-    inline mat GetGaussPoints_z(int ElementType)
+     mat GetGaussPoints_z(int ElementType)
     {
         if (MeshDimension>=3)
             return GaussPointy[ElementType];
@@ -416,12 +423,12 @@ public:
     }
 
     /// Returns the Number of Gauss Points per Element Type.
-    inline int GetNumberOfGaussPoints(int ElementType)
+     int GetNumberOfGaussPoints(int ElementType)
     {
         return NoOfGaussPts[ElementType];
     }
     /// Returns the matrix of the Shape function of u.
-    inline sp_mat Get_u(int ElementType, int GaussPntr)
+     sp_mat Get_u(int ElementType, int GaussPntr)
     {
         return u[ElementType][GaussPntr];
     }
@@ -444,7 +451,7 @@ protected:
     /// This function builds the representation similar to
     /// how shape functions are represented generally in text books
     /// [N1 0 0; 0 N1 0; 0 0 N1; N2 0 0; 0 N2 0; 0 0 N2; N3 0 0; 0 N3 0; 0 0 N3]
-    inline sp_mat vectorizeQuantity(mat& Variable, int VectorLevel)
+     sp_mat vectorizeQuantity(mat& Variable, int VectorLevel)
     {
         vec VariableVector=vectorise(Variable);
         int NoOfRows=VariableVector.n_rows;

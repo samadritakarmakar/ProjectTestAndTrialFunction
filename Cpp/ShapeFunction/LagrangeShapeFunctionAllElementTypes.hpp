@@ -20,7 +20,7 @@ public:
         }
     }
 
-    inline std::vector<mat> GetShapeFunction(mat &GaussPointx)
+     std::vector<mat> GetShapeFunction(mat &GaussPointx)
     {
         for (int i=0; i<ShpFnc.size(); i++)
         {
@@ -28,7 +28,7 @@ public:
         }
         return N;
     }
-    inline std::vector<mat> GetShapeFunction(mat &GaussPointx, mat &GaussPointy)
+     std::vector<mat> GetShapeFunction(mat &GaussPointx, mat &GaussPointy)
     {
         for (int i=0; i<ShpFnc.size(); i++)
         {
@@ -36,7 +36,7 @@ public:
         }
         return N;
     }
-    inline std::vector<mat> GetShapeFunction(mat &GaussPointx, mat &GaussPointy, mat &GaussPointz)
+     std::vector<mat> GetShapeFunction(mat &GaussPointx, mat &GaussPointy, mat &GaussPointz)
     {
         for (int i=0; i<ShpFnc.size(); i++)
         {

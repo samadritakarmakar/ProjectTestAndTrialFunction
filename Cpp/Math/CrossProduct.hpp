@@ -4,7 +4,7 @@
 #include "cof.hpp"
 
 using namespace arma;
-inline mat CrossProduct(mat Matrix1, mat Matrix2)
+ mat CrossProduct(mat Matrix1, mat Matrix2)
 {
     vec mtrx1=vectorise(Matrix1);
     vec mtrx2=vectorise(Matrix2);
