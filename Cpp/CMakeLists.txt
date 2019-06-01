@@ -42,7 +42,8 @@ set (PreDev libGmshReader GmshApi LagrangeShapeFunction ShapeFunction FEMtools P
 set (PreInstalled armadillo lapack openblas superlu)
 
 add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries (${PROJECT_NAME} ${PreDev} ${PreInstalled} ${InternalDev} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_SOURCE_DIR}/libGmshReader/GmshApi/libgmsh.a)
+target_link_libraries (${PROJECT_NAME} ${PreDev} ${PreInstalled} ${InternalDev} ${CMAKE_THREAD_LIBS_INIT}
+    ${CMAKE_SOURCE_DIR}/libGmshReader/GmshApi/libgmsh.a)
 
 set (COPY_FILES BaseGeom GaussData)
 foreach(loop_var ${COPY_FILES})

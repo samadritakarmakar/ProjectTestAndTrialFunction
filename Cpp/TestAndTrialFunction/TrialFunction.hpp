@@ -20,10 +20,12 @@ class TrialFunction
 public:
     mat (TrialFunction::*Pntr_Calc_N)(mat , OtherData);
     std::vector<int> NoOfGaussPts;
-
+    std::vector<int> NoOfElements;
+    std::vector<umat> ElmntNodes;
     libGmshReader::MeshReader *Msh;
     int MeshDimension;
     int vectorLvl;
+    int originalVctrLvl;
     int NoOfElementTypes;
 
     /// To be used only for declaring, must not forget to Initialize.
@@ -38,11 +40,12 @@ public:
         //std::cout<<"Constructor runs file name type !!\n";
         SetDimension();
         SetCommonVariables(vectorLevel);
-        if(vectorLevel<MeshDimension && vectorLevel!=1)
-        {
-            vectorLvl=1;
-        }
+        //if(vectorLevel<MeshDimension && vectorLevel!=1)
+        //{
+        //    vectorLvl=1;
+        //}
         SetDimension();
+        GetNumberOfVariables();
         SetGaussPtBasedVariables();
         // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
         Generate_dN_by_dEps ();
@@ -57,6 +60,7 @@ public:
         SetCommonVariables(vectorLevel);
         SetDimension();
         CheckVectorLevel();
+        GetNumberOfVariables();
         SetGaussPtBasedVariables();
         // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
         Generate_dN_by_dEps ();
@@ -83,6 +87,7 @@ public:
         SetCommonVariables(vectorLevel);
         SetDimension(Dimension);
         CheckVectorLevel();
+        GetNumberOfVariables();
         SetGaussPtBasedVariables();
         // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
         Generate_dN_by_dEps ();
@@ -97,6 +102,7 @@ public:
     void SetCommonVariables(int& vectorLevel)
     {
         vectorLvl=vectorLevel;
+        originalVctrLvl=vectorLevel;
         N=std::vector<mat> (Msh->NumOfElementTypes);
         Phi=std::vector<LagrangeShapeFunction> (Msh->NumOfElementTypes);
         GaussData=std::vector<mat> (Msh->NumOfElementTypes);
@@ -107,6 +113,8 @@ public:
         NoOfGaussPts=std::vector<int> (Msh->NumOfElementTypes);
         u=std::vector<std::vector<sp_mat>>(Msh->NumOfElementTypes);
         dN_by_dEps=std::vector<std::vector<mat>>(Msh->NumOfElementTypes);
+        NoOfElements=std::vector<int> (Msh->NumOfElementTypes);
+        ElmntNodes=std::vector<umat> (Msh->NumOfElementTypes);
         NoOfElementTypes=Msh->NumOfElementTypes;
     }
 
@@ -126,7 +134,7 @@ public:
         {
             std::cout<<"Dimension ("<<MeshDimension<<") must match the Vector Level "<<vectorLvl<<"\n";
             std::cout<<"or Vector Level should be equal to 1!!!\n";
-            throw;
+            //throw;
         }
     }
 
@@ -146,6 +154,29 @@ public:
                 u[ElementType][GaussPt]=vectorizeQuantity(Ncol,vectorLvl);
                 //cout<<mat(u[ElementType][GaussPt])<<"\n";
             }
+        }
+    }
+
+    void Regenerate_u()
+    {
+        for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
+        {
+            u[ElementType]=std::vector<sp_mat>(NoOfGaussPts[ElementType]);
+            for (int GaussPt=0;GaussPt<NoOfGaussPts[ElementType];GaussPt++)
+            {
+                mat Ncol=N[ElementType].col(GaussPt);
+                u[ElementType][GaussPt]=vectorizeQuantity(Ncol,originalVctrLvl);
+                //cout<<mat(u[ElementType][GaussPt])<<"\n";
+            }
+        }
+    }
+
+    void GetNumberOfVariables()
+    {
+        for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
+        {
+            NoOfElements[ElementType]= Msh->ElementNodes[ElementType].n_rows;
+            ElmntNodes[ElementType]= Msh->ElementNodes[ElementType];
         }
     }
 

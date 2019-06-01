@@ -11,7 +11,21 @@ public:
     {
         //cout<<"Grad(u) Neumann Surface\n"<<mat(Get_grad_u(0,0,0));
         //cout<<"dl_norm = "<<Get_dL(0,0,0)<<"\n";
+        GetNumberOfVariables();
+        originalVctrLvl=(u.vectorLvl);
+        Regenerate_u();
     }
+
+    /// Sets the NoOfElements and ElmntNodes or 'Connectivity Matrix for a certain Element Type.
+    void GetNumberOfVariables()
+    {
+        for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
+        {
+            NoOfElements[ElementType]= Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum].n_rows;
+            ElmntNodes[ElementType]= Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum];
+        }
+    }
+
     /// This function generates the F matrix. This in mathematical terms is the Jacobian dx/dEps
     void Get_F(int ElementType, int ElementNumber, int GaussPntr, mat& F)
     {
@@ -30,6 +44,7 @@ public:
 
      double Get_dL(int ElementType, int ElementNumber, int GaussPntr)
     {
+        //cout<<"ElementType ="<<ElementType<<" PhysclGrpNum ="<<PhysclGrpNum<<" ElementNumber ="<<ElementNumber<<"\n";
         umat NodesAtElmntNmbr=Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum].row(ElementNumber);
         mat Coordinates=Msh->NodalCoordinates.rows(NodesAtElmntNmbr);
         mat F_rectangle=Coordinates.cols(0,originalDimension-1).t()*dN_by_dEps[ElementType][GaussPntr];

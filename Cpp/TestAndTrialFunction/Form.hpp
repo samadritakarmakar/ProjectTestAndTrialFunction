@@ -11,6 +11,7 @@ class Form//: public TrialFunction
 {
 public:
     sp_mat ResultingMat;
+    mat ResultingVector;
     Form()
     {
         ElementType=0;
@@ -90,7 +91,6 @@ public:
         return v.Get_curl_v(ElementType, ElementNumber, GaussPntr);
     }
 
-
      sp_mat inner(TestFunctionGalerkin<GenericTrialFunction>& v, GenericTrialFunction& u)
     {
         //set_u_Internal(u);
@@ -107,6 +107,11 @@ public:
     {
         return grad_v*grad_u;
     }
+
+     mat dot(TestFunctionGalerkin<GenericTrialFunction>& v, vec& vctr)
+     {
+         return v.Get_v(ElementType,GaussPntr)*vctr;
+     }
 
      sp_mat dot(TestFunctionGalerkin<GenericTrialFunction>& v, sp_mat grad_u)
     {
@@ -176,6 +181,12 @@ public:
         ResultingMat=Expression;
         return ResultingMat;
     }
+
+     mat operator=(mat Expression)
+     {
+         ResultingVector=Expression;
+         return ResultingVector;
+     }
 
      void NextElementType()
     {
