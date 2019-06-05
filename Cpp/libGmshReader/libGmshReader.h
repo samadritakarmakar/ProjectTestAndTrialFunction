@@ -107,6 +107,37 @@ public:
         std::cout<<"Time taken to Read Mesh= "<<elapsed_seconds.count()<<" seconds\n";
         GetPhysicalGroupData();
     }
+    /// This Copies the FileName, Node Data from the given File and skips reading Node Data
+    MeshReader(libGmshReader::MeshReader GivenMsh, int dimension)
+    {
+        std::cout<<"Reading the Mesh...\n";
+        ///Sets fileName
+        setFileName(GivenMsh.NodeData::fileName);
+        ///sets dimension
+        setDimension(dimension);
+        std::chrono::time_point<std::chrono::system_clock> start, end;
+        start = std::chrono::system_clock::now();
+        gmsh::initialize();
+        NumOfNodes=GivenMsh.NumOfNodes;
+        NodeTag.set_size(GivenMsh.NodeTag.n_rows, GivenMsh.NodeTag.n_cols);
+        NodeTag=GivenMsh.NodeTag;
+        NodalCoordinates.set_size(GivenMsh.NodalCoordinates.n_rows,GivenMsh.NodalCoordinates.n_cols);
+        NodalCoordinates=GivenMsh.NodalCoordinates;
+        gmsh::open(ElementData::fileName);
+        ///Extracts Element data from Mesh file
+        GetElementData();
+        /// Extract just the element name and remove the number of nodes from it.
+        GetGmshElementNameOnly();
+        ///Sets the variable ElementNodes Mesh file
+        setElementNodes();
+        FindMaxNodeNumber();
+        end=std::chrono::system_clock::now();
+        std::cout<<"Done Reading the Mesh!\n";
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::cout<<"Time taken to Read Mesh= "<<elapsed_seconds.count()<<" seconds\n";
+        GetPhysicalGroupData();
+    }
+
     ///Deallocates all allocated Element Data
     ~MeshReader()
     {

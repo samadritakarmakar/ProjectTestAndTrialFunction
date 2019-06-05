@@ -6,7 +6,7 @@
 class TrialFunctionNeumannLine: public TrialFunction
 {
 public:
-    TrialFunctionNeumannLine (TrialFunction& u, int PhysicalGroupNumber): TrialFunction (u.Msh->ElementData::fileName, 1, u.vectorLvl-2),
+    TrialFunctionNeumannLine (TrialFunction& u, int PhysicalGroupNumber): TrialFunction (*u.Msh, 1, u.vectorLvl-2),
         originalDimension(u.Msh->ElementData::dim), PhysclGrpNum (PhysicalGroupNumber)
     {
         //cout<<"Grad(u) Neumann Surface\n"<<mat(Get_grad_u(0,0,0));
@@ -16,7 +16,7 @@ public:
         Regenerate_u();
     }
 
-    /// Sets the NoOfElements and ElmntNodes or 'Connectivity Matrix for a certain Element Type.
+    /// Sets the NoOfElements and ElmntNodes or 'Connectivity Matrix' for a certain Element Type.
     void GetNumberOfVariables()
     {
         for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)

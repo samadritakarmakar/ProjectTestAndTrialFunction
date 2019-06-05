@@ -110,7 +110,6 @@ public:
                 umat positions=NodePositions[ElmntTyp].row(a_Internal.ElementNumber);
                 umat positions2={0};
                 b.submat(positions, positions2)=b.submat(positions, positions2)+a_Internal.ResultingVector;
-                //b(positions,1)=b(positions,1)+a_Internal.ResultingVector;
                 a_Internal.NextElementNumber();
             }
             a_Internal.NextElementType();

@@ -33,17 +33,17 @@ public:
     {
         //---Do--Nothing
     }
-    TrialFunction(std::string& fileName, int MeshDimension, int vectorLevel)
+    TrialFunction(libGmshReader::MeshReader& Mesh, int MeshDimension, int vectorLevel)
     {
-        Msh =new libGmshReader::MeshReader(fileName, MeshDimension);
+        Msh =new libGmshReader::MeshReader(Mesh, MeshDimension);
         NewMeshInstanceCreated=true;
         //std::cout<<"Constructor runs file name type !!\n";
         SetDimension();
         SetCommonVariables(vectorLevel);
-        //if(vectorLevel<MeshDimension && vectorLevel!=1)
-        //{
-        //    vectorLvl=1;
-        //}
+        if(vectorLevel<MeshDimension && vectorLevel!=1)
+        {
+            vectorLvl=1;
+        }
         SetDimension();
         GetNumberOfVariables();
         SetGaussPtBasedVariables();
@@ -80,7 +80,7 @@ public:
         }*/
     }
 
-    TrialFunction(libGmshReader::MeshReader& Mesh, int& vectorLevel, int& Dimension)
+    /*TrialFunction(libGmshReader::MeshReader& Mesh, int& vectorLevel, int& Dimension)
     {
         NewMeshInstanceCreated=false;
         SetMesh(Mesh);
@@ -92,7 +92,7 @@ public:
         // Keep derivatives of Shape Functions w.rt. points within the reference elements ready.
         Generate_dN_by_dEps ();
     }
-
+*/
     void SetMesh(libGmshReader::MeshReader& Mesh)
     {
         Msh=&Mesh;
@@ -134,7 +134,7 @@ public:
         {
             std::cout<<"Dimension ("<<MeshDimension<<") must match the Vector Level "<<vectorLvl<<"\n";
             std::cout<<"or Vector Level should be equal to 1!!!\n";
-            //throw;
+            throw;
         }
     }
 
@@ -171,6 +171,7 @@ public:
         }
     }
 
+    /// Sets the NoOfElements and ElmntNodes or 'Connectivity Matrix' for a certain Element Type.
     void GetNumberOfVariables()
     {
         for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
@@ -216,6 +217,17 @@ public:
         }
     }
     */
+    /// Gets the interpolated value of [x,y,z] at a cetrian Gauss point
+    mat Get_x(int ElementType, int ElementNumber, int GaussPntr)
+    {
+        umat NodesAtElmntNmbr=Msh->ElementNodes[ElementType].row(ElementNumber);
+        mat Coordinates=Msh->NodalCoordinates.rows(NodesAtElmntNmbr);
+        mat x=Coordinates.cols(0,2).t()*N[ElementType].col(GaussPntr);
+        return x;
+    }
+
+
+
     /// Gives an output for trace of grad u
      mat Get_trace_grad_u(int ElementType, int ElementNumber, int GaussPntr)
     {
@@ -285,7 +297,6 @@ public:
         {
             for (int col=0; col<vectorLvl; col++)
             {
-                //cout<<"row= "<<row<<", col= "<<col*vectorLvl<<" : "<<col*vectorLvl+cols_dN_dx-1<<"\n";
                 grad_u(row,span(col*vectorLvl, col*vectorLvl+cols_dN_dx-1))=dN_by_dx_atGaussPt.row(cntr);
                 row++;
             }

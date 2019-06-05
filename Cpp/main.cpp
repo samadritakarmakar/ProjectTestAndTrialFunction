@@ -7,6 +7,7 @@
 #include "TrialFunctionNeumannLine.hpp"
 #include "LocalIntegration.hpp"
 #include "SystemAssembly.hpp"
+#include "DirichletBC.hpp"
 using namespace arma;
 class new_LocalIntegrator: public LocalIntegrator<TrialFunction>
 {
@@ -39,6 +40,8 @@ public:
         //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
         vec b;
         b<<0<<endr<<0<<endr<<-9.81<<endr;
+        //b<<0<<endr<<0<<endr;
+        //b<<0<<endr;
         return a.dot(v,b)*a.dX(u);
         //return a.dot(a.curl(v),a.curl(u));
     }
@@ -57,7 +60,7 @@ public:
                      TestFunctionGalerkin<TrialFunctionNeumannLine>& v)
     {
        //return a.inner(v,u)*a.dX(u);
-        vec vctr={1,0,0};
+        vec vctr=vec(a.x(u));
         //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
         return a.dot(v,vctr)*a.dL(u);
     }
@@ -101,7 +104,9 @@ int main(int argc, char *argv[])
     std::shared_ptr<new_Neu_Line_LclIntgrtr> lcl_intgrt3(new new_Neu_Line_LclIntgrtr(a3,u_line,v_line));
     SystemAssembler<new_Neu_Line_LclIntgrtr, TrialFunctionNeumannLine> systmAssmbly3(a3,u_line, v_line);
     systmAssmbly3.RunSystemAssemblyVector(lcl_intgrt3,b);
-    cout<<b;
+    //cout<<b;
+    umat boolDiricletNodes={0,1,1};
+    DirichletBC DrchltBC(u_line,0, boolDiricletNodes);
     //intgrt=lcl_intgrt;
     //intgrt->local_intergrator();
     //cout<<"grad(v):grad(u)*dx =\n"<<mat(a.ResultingMat);
@@ -124,5 +129,6 @@ int main(int argc, char *argv[])
     /*TrialFunctionNeumannLine u_line(u,0);
     TestFunctionGalerkin<TrialFunctionNeumannLine> v_line(u_line);
     */
+    cout<<"Done!!!\n";
     return 0;
 }

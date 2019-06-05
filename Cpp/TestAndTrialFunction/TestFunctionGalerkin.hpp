@@ -29,6 +29,16 @@ public:
         return u->Get_grad_u(ElementType, ElementNumber, GaussPntr).t();
     }
 
+     sp_mat GetTranspose_grad_v(int ElementType,int ElementNumber,int GaussPntr)
+     {
+         return u->GetTranspose_grad_u(ElementType, ElementNumber, GaussPntr).t();
+     }
+
+     mat Get_trace_grad_v(int ElementType,int ElementNumber,int GaussPntr)
+     {
+         return u->Get_trace_grad_u(ElementType, ElementNumber, GaussPntr).t();
+     }
+
      sp_mat Get_curl_v(int ElementType, int ElementNumber, int GaussPntr)
     {
         return u->Get_curl_u(ElementType, ElementNumber, GaussPntr).t();

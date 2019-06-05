@@ -32,6 +32,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/TestAndTrialFunction/")
 add_subdirectory(TestAndTrialFunction/)
 include_directories ("${PROJECT_SOURCE_DIR}/Integrator/")
 add_subdirectory(Integrator/)
+include_directories ("${PROJECT_SOURCE_DIR}/DirichletBC/")
+add_subdirectory(DirichletBC/)
 
 #set (PreInstalled armadillo blas lapack)
 

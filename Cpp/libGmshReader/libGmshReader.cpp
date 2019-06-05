@@ -168,19 +168,22 @@ void libGmshReader::MeshReader::FillElementNodes(int start, int end, int Element
         //The goal is to find the same Node Tags in NodeTag and in GmshNodeTags.
         uvec GmshElemNodeTagPos=find(GmshNodeTag[ElementType]==ContainsNodeTags(i));
         uvec NodeTagPos=find(NodeTag==ContainsNodeTags(i));
-        umat temp=NodeTagPos(0)*ones<umat>(GmshElemNodeTagPos.size());
-        //Here the ElementNodes are set according to index position of
-        //the Node tag in the variable NodeTag. The hope is faster access
-        //during solving the FEM.
-        ElementNodes[ElementType].elem(GmshElemNodeTagPos)=temp;
-        /*for(int k=0;k<GmshElemNodeTagPos.n_rows;k++)
+        if (NodeTagPos.n_rows!=0 && NodeTagPos.n_cols!=0)
         {
+            umat temp=NodeTagPos(0)*ones<umat>(GmshElemNodeTagPos.size());
             //Here the ElementNodes are set according to index position of
             //the Node tag in the variable NodeTag. The hope is faster access
             //during solving the FEM.
-            std::cout<<"k="<<k;
-            ElementNodes[ElementType](GmshElemNodeTagPos(k))=NodeTagPos(0);
-        }*/
+            ElementNodes[ElementType].elem(GmshElemNodeTagPos)=temp;
+            /*for(int k=0;k<GmshElemNodeTagPos.n_rows;k++)
+            {
+                //Here the ElementNodes are set according to index position of
+                //the Node tag in the variable NodeTag. The hope is faster access
+                //during solving the FEM.
+                std::cout<<"k="<<k;
+                ElementNodes[ElementType](GmshElemNodeTagPos(k))=NodeTagPos(0);
+            }*/
+        }
     }
 }
 

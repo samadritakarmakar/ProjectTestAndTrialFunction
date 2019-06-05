@@ -12,6 +12,9 @@ class Form//: public TrialFunction
 public:
     sp_mat ResultingMat;
     mat ResultingVector;
+    int ElementType;
+    int ElementNumber;
+    int GaussPntr;
     Form()
     {
         ElementType=0;
@@ -66,6 +69,11 @@ public:
         return v.Get_v(ElementType, GaussPntr);
     }
 
+     mat x(GenericTrialFunction& u)
+     {
+         return u.Get_x(ElementType, ElementNumber, GaussPntr);
+     }
+
 
      sp_mat grad(GenericTrialFunction& u)
     {
@@ -79,7 +87,15 @@ public:
         return v.Get_grad_v(ElementType, ElementNumber, GaussPntr);
     }
 
+     sp_mat transpose_grad(GenericTrialFunction& u)
+     {
+         return u.GetTranspose_grad_u(ElementType, ElementNumber, GaussPntr);
+     }
 
+     sp_mat transpose_grad(TestFunctionGalerkin<GenericTrialFunction>& v)
+     {
+         return v.GetTranspose_grad_u(ElementType, ElementNumber, GaussPntr);
+     }
      sp_mat curl(GenericTrialFunction& u)
     {
         //set_u_Internal(u);
@@ -90,6 +106,11 @@ public:
     {
         return v.Get_curl_v(ElementType, ElementNumber, GaussPntr);
     }
+
+     mat trace(TrialFunction& u)
+     {
+         return u.Get_trace_grad_u(ElementType, ElementNumber, GaussPntr);
+     }
 
      sp_mat inner(TestFunctionGalerkin<GenericTrialFunction>& v, GenericTrialFunction& u)
     {
@@ -202,10 +223,6 @@ public:
     {
         GaussPntr++;
     }
-
-    int ElementType;
-    int ElementNumber;
-    int GaussPntr;
 
 protected:
     GenericTrialFunction *u_Internal;
