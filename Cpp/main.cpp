@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 {
     if(argc==1 || argc>3)
     {
-        std::cout<<"Usage: ./ProjectShapeFunction <.msh Filename> <Dimension>\n";
+        std::cout<<"Usage: ./ProjectTestFunction <.msh Filename> <Dimension>\n";
         return 0;
     }
     std::string FileName(argv[1]);

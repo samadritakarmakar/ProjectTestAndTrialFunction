@@ -14,7 +14,7 @@ To compile the code, you need to download the latest Gmsh source code from gmsh.
     make lib
     
 Copy the libgmsh.a file generated to the folder ProjectTestFunction/Cpp/libGmshReader/GmshApi/  
-Run the following command in your Project-FEA2 Build directory.
+Run the following command in your ProjectTestFunction Build directory.
 
     cmake <path ProjectTestFunction/Cpp/ source directory>
     make
