@@ -94,7 +94,7 @@ public:
 
      sp_mat transpose_grad(TestFunctionGalerkin<GenericTrialFunction>& v)
      {
-         return v.GetTranspose_grad_u(ElementType, ElementNumber, GaussPntr);
+         return v.GetTranspose_grad_v(ElementType, ElementNumber, GaussPntr);
      }
      sp_mat curl(GenericTrialFunction& u)
     {

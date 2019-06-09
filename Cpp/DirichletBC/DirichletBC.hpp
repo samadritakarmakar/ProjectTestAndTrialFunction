@@ -13,6 +13,7 @@ public:
         DirichletBCNodesFill=std::vector<umat>(Msh->NumOfElementTypes);
         NoOfNodes=std::vector<int>(Msh->NumOfElementTypes);
         NodePositions=std::vector<umat>(Msh->NumOfElementTypes);
+        ExprssnPositions=std::vector<umat>(Msh->NumOfElementTypes);
         for (int ElementType=0; ElementType<Msh->NumOfElementTypes; ElementType++)
         {
             DirichletBCNodes[ElementType]=unique(Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum]);
@@ -35,9 +36,25 @@ public:
                     boolDiriclet=0;
                 }
             }
+            boolDiriclet=0;
+            int ExprssnSize=1;
+            ExprssnPositions[ElementType].set_size(1, ExprssnSize);
+            for (int ExprssIndx=0; ExprssIndx<vctrLvlInternal; ExprssIndx++)
+            {
+                if(bool(boolDiricletNodes(0,ExprssIndx)))
+                {
+                    //cout<<"ExprssIndx = "<<ExprssIndx<<"\n";
+                    ExprssnPositions[ElementType].resize(1,ExprssnSize);
+                    ExprssnPositions[ElementType](0,ExprssnSize-1)=ExprssIndx;
+                    ExprssnSize++;
+                }
+                boolDiriclet++;
+            }
         }
         //cout<<NodePositions[0];
         //cout<<DirichletBCNodesFill[0];
+        //cout<<ExprssnPositions[0];
+        //cout<<"Diriclet Nodes =\n"<<DirichletBCNodes[0];
     }
 
     virtual mat Expression(mat& x)
@@ -62,14 +79,21 @@ public:
          mat x={0};
          for (int ElementType=0; ElementType<Msh->NumOfElementTypes; ElementType++)
          {
-             umat NodePosition;
-             GetNodePostions(NodePosition, DirichletBCNodes[ElementType], vctrLvlInternal);
+             //umat NodePosition;
+             //GetNodePostions(NodePosition, DirichletBCNodes[ElementType], vctrLvlInternal);
              for (int NodeNumber=0; NodeNumber<NoOfNodes[ElementType]; NodeNumber++)
              {
                  currentNodeNumber=NodeNumber;
-                 umat Positions1=NodePosition.row(NodeNumber);
-                 b.rows(Positions1)=Expression(x);
-
+                 //umat Positions1=NodePosition.row(NodeNumber);
+                 umat Positions1=DirichletBCNodesFill[ElementType].row(NodeNumber);
+                 mat Expressn=Expression(x);
+                 b.rows(Positions1)=Expressn.rows(ExprssnPositions[ElementType]);
+                 for (int MatPosition=0;MatPosition<Positions1.n_cols;MatPosition++)
+                 {
+                     A.row(Positions1(0,MatPosition))=zeros(1,A.n_cols);
+                     A.col(Positions1(0,MatPosition))=zeros(A.n_rows,1);
+                     A(Positions1(0,MatPosition),Positions1(0,MatPosition))=1;
+                 }
              }
          }
      }
@@ -82,6 +106,7 @@ private:
     std::vector<umat> DirichletBCNodes, DirichletBCNodesFill;
     std::vector<int> NoOfNodes;
     std::vector<umat> NodePositions;
+    std::vector<umat> ExprssnPositions;
 };
 
 #endif // DIRICHLETBC_HPP

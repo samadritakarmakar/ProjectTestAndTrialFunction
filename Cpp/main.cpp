@@ -8,6 +8,8 @@
 #include "LocalIntegration.hpp"
 #include "SystemAssembly.hpp"
 #include "DirichletBC.hpp"
+#include "Variable.hpp"
+#include "GmshWriter.hpp"
 using namespace arma;
 class new_LocalIntegrator: public LocalIntegrator<TrialFunction>
 {
@@ -39,7 +41,7 @@ public:
         //vec vector={1, 2, 3};
         //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
         vec b;
-        b<<0<<endr<<0<<endr<<-9.81<<endr;
+        b<<0<<endr<<0<<endr<<0<<endr;
         //b<<0<<endr<<0<<endr;
         //b<<0<<endr;
         return a.dot(v,b)*a.dX(u);
@@ -60,7 +62,8 @@ public:
                      TestFunctionGalerkin<TrialFunctionNeumannLine>& v)
     {
        //return a.inner(v,u)*a.dX(u);
-        vec vctr=vec(a.x(u));
+        //vec vctr=vec(a.x(u));
+        vec vctr={0,1,0};
         //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
         return a.dot(v,vctr)*a.dL(u);
     }
@@ -87,26 +90,40 @@ int main(int argc, char *argv[])
     std::shared_ptr<new_LocalIntegrator> lcl_intgrt(new new_LocalIntegrator(a,u,v));
     SystemAssembler<new_LocalIntegrator, TrialFunction> systmAssmbly(a,u,v);
     //systmAssmbly.SetLocalIntegrator(lcl_intgrt);
-    sp_mat A;
-    systmAssmbly.SetMatrixSize(A);
-    systmAssmbly.RunSystemAssembly(lcl_intgrt, A);
+    //sp_mat A;
+    VariableMatrix A(1);
+    systmAssmbly.SetMatrixSize(A.Matrix[0][0]);
+    systmAssmbly.RunSystemAssembly(lcl_intgrt, A.Matrix[0][0]);
 
     Form<TrialFunction> a2;
     std::shared_ptr<new_LocalIntegrator2> lcl_intgrt2(new new_LocalIntegrator2(a2,u,v));
     SystemAssembler<new_LocalIntegrator2, TrialFunction> systmAssmbly2(a2,u,v);
-    mat b;
-    systmAssmbly2.SetVectorSize(b);
-    systmAssmbly2.RunSystemAssemblyVector(lcl_intgrt2,b);
+    //mat b;
+    VariableVector b(1);
+    systmAssmbly2.SetVectorSize(b.Vector[0]);
+    systmAssmbly2.RunSystemAssemblyVector(lcl_intgrt2,b.Vector[0]);
 
     Form<TrialFunctionNeumannLine> a3;
     TrialFunctionNeumannLine u_line(u,0);
     TestFunctionGalerkin<TrialFunctionNeumannLine> v_line(u_line);
     std::shared_ptr<new_Neu_Line_LclIntgrtr> lcl_intgrt3(new new_Neu_Line_LclIntgrtr(a3,u_line,v_line));
     SystemAssembler<new_Neu_Line_LclIntgrtr, TrialFunctionNeumannLine> systmAssmbly3(a3,u_line, v_line);
-    systmAssmbly3.RunSystemAssemblyVector(lcl_intgrt3,b);
-    //cout<<b;
-    umat boolDiricletNodes={0,1,1};
-    DirichletBC DrchltBC(u_line,0, boolDiricletNodes);
+    systmAssmbly3.RunSystemAssemblyVector(lcl_intgrt3,b.Vector[0]);
+
+    //cout<<b.Vector[0];
+
+    umat boolDiricletNodes={1,1,1};
+    DirichletBC DrchltBC(u_line,1, boolDiricletNodes);
+    DrchltBC.ApplyBC(A.Matrix[0][0],b.Vector[0]);
+    //cout<<b.Vector[0];
+    mat X=spsolve(A.Matrix[0][0],b.Vector[0]);
+    //cout<<X;
+    GmshWriter tryWrite(u, "output.msh");
+    tryWrite.WriteToGmsh(X);
+    //for (int i=0; i<b.n_rows; i++)
+    //{
+     //   cout<<b(i,0)<<"\t"<<i<<"\n";
+    //}
     //intgrt=lcl_intgrt;
     //intgrt->local_intergrator();
     //cout<<"grad(v):grad(u)*dx =\n"<<mat(a.ResultingMat);

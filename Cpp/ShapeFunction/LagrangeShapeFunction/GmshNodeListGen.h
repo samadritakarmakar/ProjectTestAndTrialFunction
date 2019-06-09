@@ -109,9 +109,9 @@ void GetNodeList_4_1_Element(const std::string &FolderName, const std::string &F
     gmsh::model::mesh::setOrder(order);
     std::vector<double> coord;
     std::vector<double> parametricCoord;
-    std::vector<std::vector<int>> nodeTags2;
+    std::vector<std::vector<std::size_t>> nodeTags2;
     std::vector<int> elementTypes;
-    std::vector<std::vector<int>> elementTags;
+    std::vector<std::vector<std::size_t>> elementTags;
     gmsh::model::mesh::getElements(elementTypes,elementTags,nodeTags2,dim,-1);
     //std::cout<<"Size of node list in element"<<nodeTags2[0].size()<<"\n"; //To debug the size of nodes in one element.
     NodeList.set_size(nodeTags2[0].size(), dim);

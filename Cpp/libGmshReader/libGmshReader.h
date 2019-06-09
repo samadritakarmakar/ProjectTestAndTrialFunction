@@ -2,7 +2,7 @@
 #define LIBGMSHREADER_H
 #include <string>
 #include <armadillo>
-#include <gmsh.h>
+#include "gmsh.h"
 #include <string>
 #include <vector>
 #include <fstream>
@@ -21,7 +21,7 @@ class ElementData
     std::vector <umat> ElementNodes, ElementTag, ContainsNodes, GmshNodeTag;
     std::vector <std::vector <umat>> ElmntPhysclGrpNodes;
     std::vector<std::string> PhysicalGroupName;
-    std::vector<int> PhysicalGroupNodeTags;
+    std::vector<size_t> PhysicalGroupNodeTags;
     std::string fileName;
     bool fileExist;
     int dim;

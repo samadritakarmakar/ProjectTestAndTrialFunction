@@ -22,6 +22,11 @@ public:
     {
         for (int ElementType = 0; ElementType<Msh->NumOfElementTypes; ++ElementType)
         {
+            if(int(Msh->ElmntPhysclGrpNodes[ElementType].size())==0)
+            {
+                cout<<"A Physical Group at Index "<<PhysclGrpNum<<" does not exist!!!"<<"\n";
+                throw;
+            }
             NoOfElements[ElementType]= Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum].n_rows;
             ElmntNodes[ElementType]= Msh->ElmntPhysclGrpNodes[ElementType][PhysclGrpNum];
         }
