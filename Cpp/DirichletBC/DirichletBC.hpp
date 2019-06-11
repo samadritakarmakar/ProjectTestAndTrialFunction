@@ -2,6 +2,7 @@
 #define DIRICHLETBC_HPP
 #include "TrialFunction.hpp"
 #include "libGmshReader.h"
+#include "Expression.hpp"
 class DirichletBC
 {
 public:
@@ -9,6 +10,7 @@ public:
         u_Internal(u), PhysclGrpNum (PhysicalGroupNumber), Msh(u.Msh),
         vctrLvlInternal(u.originalVctrLvl), currentNodeNumber(0)
     {
+        //ExprssnInternal = std::shared_ptr<Expression>(new Expression(u_Internal.originalVctrLvl));
         DirichletBCNodes=std::vector<umat>(Msh->NumOfElementTypes);
         DirichletBCNodesFill=std::vector<umat>(Msh->NumOfElementTypes);
         NoOfNodes=std::vector<int>(Msh->NumOfElementTypes);
@@ -57,26 +59,31 @@ public:
         //cout<<"Diriclet Nodes =\n"<<DirichletBCNodes[0];
     }
 
-    virtual mat Expression(mat& x)
+    /*virtual mat Expression(mat& x)
     {
         mat Exprssn=zeros(vctrLvlInternal,1);
         return Exprssn;
-    }
+    }*/
 
     ///Returns a matrix of coordinates [x, y, z] of all current node number
     /// within the Physical Enitity.
-     mat x()
+     vec x()
     {
+         mat Coordinates;
          for (int ElementType=0; ElementType<Msh->NumOfElementTypes; ElementType++)
          {
-             mat Coordinates=Msh->NodalCoordinates.rows(DirichletBCNodes[ElementType]);
-             return Coordinates.cols(currentNodeNumber,vctrLvlInternal-1);
+             Coordinates=Msh->NodalCoordinates.rows(DirichletBCNodes[ElementType]);
          }
+         return vectorise(Coordinates(currentNodeNumber,span(0,vctrLvlInternal-1)));
      }
+
+     void SetDirichletBC(Expression& DeclaredExprssnClss)
+         {
+             ExprssnInternal= &DeclaredExprssnClss;
+         }
 
      void ApplyBC(sp_mat &A, mat& b)
      {
-         mat x={0};
          for (int ElementType=0; ElementType<Msh->NumOfElementTypes; ElementType++)
          {
              //umat NodePosition;
@@ -86,7 +93,9 @@ public:
                  currentNodeNumber=NodeNumber;
                  //umat Positions1=NodePosition.row(NodeNumber);
                  umat Positions1=DirichletBCNodesFill[ElementType].row(NodeNumber);
-                 mat Expressn=Expression(x);
+                 //mat Expressn=Expression(x);
+                 vec X=x();
+                 vec Expressn= ExprssnInternal->Eval(X);
                  b.rows(Positions1)=Expressn.rows(ExprssnPositions[ElementType]);
                  for (int MatPosition=0;MatPosition<Positions1.n_cols;MatPosition++)
                  {
@@ -107,6 +116,8 @@ private:
     std::vector<int> NoOfNodes;
     std::vector<umat> NodePositions;
     std::vector<umat> ExprssnPositions;
+    //std::shared_ptr<Expression> ExprssnInternal;
+    Expression* ExprssnInternal;
 };
 
 #endif // DIRICHLETBC_HPP

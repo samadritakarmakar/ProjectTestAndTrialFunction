@@ -8,6 +8,7 @@
 #include "LocalIntegration.hpp"
 #include "SystemAssembly.hpp"
 #include "DirichletBC.hpp"
+#include "Expression.hpp"
 #include "Variable.hpp"
 #include "GmshWriter.hpp"
 using namespace arma;
@@ -20,11 +21,8 @@ public:
     }
     sp_mat weak_form(Form<TrialFunction>& a, TrialFunction& u, TestFunctionGalerkin<TrialFunction>& v)
     {
-        //return a.inner(v,u)*a.dX(u);
-        //vec vector={1, 2, 3};
-        //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
+        //return a.inner(a.curl(v),a.curl(u))*a.dX(u);
         return a.inner(a.grad(v),a.grad(u))*a.dX(u);
-        //return a.dot(a.curl(v),a.curl(u));
     }
 };
 
@@ -37,16 +35,28 @@ public:
     }
     mat weak_form_vector(Form<TrialFunction>& a, TrialFunction& u, TestFunctionGalerkin<TrialFunction>& v)
     {
-        //return a.inner(v,u)*a.dX(u);
-        //vec vector={1, 2, 3};
-        //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
         vec b;
         b<<0<<endr<<0<<endr<<0<<endr;
-        //b<<0<<endr<<0<<endr;
-        //b<<0<<endr;
         return a.dot(v,b)*a.dX(u);
-        //return a.dot(a.curl(v),a.curl(u));
     }
+};
+
+class new_Neu_Surf_LclIntgrtr: public LocalIntegrator <TrialFunctionNeumannSurface>
+{
+public:
+    new_Neu_Surf_LclIntgrtr(Form<TrialFunctionNeumannSurface>& a, TrialFunctionNeumannSurface& u,
+                            TestFunctionGalerkin<TrialFunctionNeumannSurface>& v):
+        LocalIntegrator (a,u,v)
+    {
+    }
+
+    mat weak_form_vector(Form<TrialFunctionNeumannSurface>& a, TrialFunctionNeumannSurface& u,
+                         TestFunctionGalerkin<TrialFunctionNeumannSurface>& v)
+    {
+        vec vctr={1,1,1};
+        return a.dot(v,vctr)*a.dS(u);
+    }
+
 };
 
 
@@ -61,11 +71,23 @@ public:
     mat weak_form_vector(Form<TrialFunctionNeumannLine>& a, TrialFunctionNeumannLine& u,
                      TestFunctionGalerkin<TrialFunctionNeumannLine>& v)
     {
-       //return a.inner(v,u)*a.dX(u);
         //vec vctr=vec(a.x(u));
-        vec vctr={0,1,0};
-        //return a=a.inner(v,a.dot(vector,a.grad(u)))*a.dX(u);
+        vec vctr={1,1,1};
         return a.dot(v,vctr)*a.dL(u);
+    }
+};
+
+class DeclaredExprssn : public Expression
+{
+public:
+    DeclaredExprssn (int vectorLevel): Expression (vectorLevel)
+    {
+    }
+
+    vec Eval(vec& x)
+    {
+        vec value={0,0,0};
+        return -value;
     }
 };
 
@@ -86,8 +108,7 @@ int main(int argc, char *argv[])
     TrialFunction u(Mesh,vectorLevel);
     TestFunctionGalerkin<TrialFunction> v(u);
     Form<TrialFunction> a;
-    //std::shared_ptr<LocalIntegrator<TrialFunction>> intgrt (new LocalIntegrator<TrialFunction>(a,u,v));
-    std::shared_ptr<new_LocalIntegrator> lcl_intgrt(new new_LocalIntegrator(a,u,v));
+    new_LocalIntegrator lcl_intgrt(a,u,v);
     SystemAssembler<new_LocalIntegrator, TrialFunction> systmAssmbly(a,u,v);
     //systmAssmbly.SetLocalIntegrator(lcl_intgrt);
     //sp_mat A;
@@ -96,56 +117,40 @@ int main(int argc, char *argv[])
     systmAssmbly.RunSystemAssembly(lcl_intgrt, A.Matrix[0][0]);
 
     Form<TrialFunction> a2;
-    std::shared_ptr<new_LocalIntegrator2> lcl_intgrt2(new new_LocalIntegrator2(a2,u,v));
+    new_LocalIntegrator2 lcl_intgrt2(a2,u,v);
     SystemAssembler<new_LocalIntegrator2, TrialFunction> systmAssmbly2(a2,u,v);
     //mat b;
     VariableVector b(1);
     systmAssmbly2.SetVectorSize(b.Vector[0]);
     systmAssmbly2.RunSystemAssemblyVector(lcl_intgrt2,b.Vector[0]);
 
-    Form<TrialFunctionNeumannLine> a3;
+    Form<TrialFunctionNeumannSurface> a3;
+    TrialFunctionNeumannSurface u_surf(u,0);
+    TestFunctionGalerkin<TrialFunctionNeumannSurface> v_surf(u_surf);
+    new_Neu_Surf_LclIntgrtr lclintgtr3(a3,u_surf, v_surf);
+    SystemAssembler<new_Neu_Surf_LclIntgrtr, TrialFunctionNeumannSurface> systmAssmbly3(a3, u_surf, v_surf);
+    systmAssmbly3.RunSystemAssemblyVector(lclintgtr3, b.Vector[0]);
+
+    Form<TrialFunctionNeumannLine> a4;
     TrialFunctionNeumannLine u_line(u,0);
-    TestFunctionGalerkin<TrialFunctionNeumannLine> v_line(u_line);
-    std::shared_ptr<new_Neu_Line_LclIntgrtr> lcl_intgrt3(new new_Neu_Line_LclIntgrtr(a3,u_line,v_line));
-    SystemAssembler<new_Neu_Line_LclIntgrtr, TrialFunctionNeumannLine> systmAssmbly3(a3,u_line, v_line);
-    systmAssmbly3.RunSystemAssemblyVector(lcl_intgrt3,b.Vector[0]);
+    /*TestFunctionGalerkin<TrialFunctionNeumannLine> v_line(u_line);
+    new_Neu_Line_LclIntgrtr lcl_intgrt4(a4,u_line,v_line);
+    SystemAssembler<new_Neu_Line_LclIntgrtr, TrialFunctionNeumannLine> systmAssmbly4(a4,u_line, v_line);
+    systmAssmbly4.RunSystemAssemblyVector(lcl_intgrt4,b.Vector[0]);*/
 
     //cout<<b.Vector[0];
 
     umat boolDiricletNodes={1,1,1};
-    DirichletBC DrchltBC(u_line,1, boolDiricletNodes);
+    DirichletBC DrchltBC(u_surf,1, boolDiricletNodes);
+    DeclaredExprssn Dirich(vectorLevel);
+    DrchltBC.SetDirichletBC(Dirich);
     DrchltBC.ApplyBC(A.Matrix[0][0],b.Vector[0]);
     //cout<<b.Vector[0];
     mat X=spsolve(A.Matrix[0][0],b.Vector[0]);
     //cout<<X;
-    GmshWriter tryWrite(u, "output.msh");
-    tryWrite.WriteToGmsh(X);
-    //for (int i=0; i<b.n_rows; i++)
-    //{
-     //   cout<<b(i,0)<<"\t"<<i<<"\n";
-    //}
-    //intgrt=lcl_intgrt;
-    //intgrt->local_intergrator();
-    //cout<<"grad(v):grad(u)*dx =\n"<<mat(a.ResultingMat);
+    GmshWriter Write(u, "output.pos");
+    Write.WriteToGmsh(X);
 
-    //cout<<"curl_v.curl_u=\n"<<mat(a.inner(a.curl(v), a.curl(u)));
-
-    /*TrialFunctionNeumannLine u_surf(u,0);
-    Form<TrialFunctionNeumannLine> a2;
-    TestFunctionGalerkin<TrialFunctionNeumannLine> v2(u_surf);
-    std::shared_ptr<LocalIntegrator<TrialFunctionNeumannLine>> intgrt2
-            (new LocalIntegrator<TrialFunctionNeumannLine>(a2,u_surf,v2));
-    std::shared_ptr<new_Neu_Surf_LclIntgrtr> lcl_intgrt2(new new_Neu_Surf_LclIntgrtr(a2,u_surf,v2));
-    intgrt2=lcl_intgrt2;
-    intgrt2->local_intergrator();
-    cout<<"grad(v):grad(u)*dx Surface =\n"<<mat(a2.ResultingMat);
-   // u.NoOfElementTypes;
-   // cout<<"Element Number = "<<a.ElementNumber
-   //    <<"\n where the Element Nodes are\n" <<u.Msh->ElementNodes[0].row(a.ElementNumber);
-    //Form<TrialFunctionNeumannLine> a3;
-    /*TrialFunctionNeumannLine u_line(u,0);
-    TestFunctionGalerkin<TrialFunctionNeumannLine> v_line(u_line);
-    */
     cout<<"Done!!!\n";
     return 0;
 }

@@ -15,6 +15,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #set (PreInstalled armadillo lapack openblas superlu)
 
-add_library(${PROJECT_NAME} DirichletBC.hpp)
+add_library(${PROJECT_NAME} DirichletBC.hpp Expression.hpp)
     
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
